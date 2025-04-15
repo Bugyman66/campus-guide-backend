@@ -81,8 +81,10 @@ io.on('connection', async (socket) => {
 
 // Middleware with specific CORS options
 app.use(cors({
-    origin: 'http://localhost:3000',
-    credentials: true
+    origin: ['https://campus-guide-owtder6rr-bugyman66s-projects.vercel.app', 'http://localhost:3000'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 
