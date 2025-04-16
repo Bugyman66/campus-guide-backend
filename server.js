@@ -13,31 +13,38 @@ const ChatService = require('./services/chatService');
 const app = express();
 const server = http.createServer(app);
 
-// Middleware with specific CORS options
+// Define allowed origins
 const allowedOrigins = [
     'http://localhost:3000',
     'https://campus-guide-9j7f2jv68-bugyman66s-projects.vercel.app'
 ];
 
-app.use(cors({
-    origin: function(origin, callback) {
-        // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return callback(null, true);
-        
-        if (allowedOrigins.indexOf(origin) !== -1) {
+// CORS configuration
+const corsOptions = {
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps, curl, postman)
+        if (!origin) {
+            return callback(null, true);
+        }
+
+        if (allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
+            console.log('Blocked origin:', origin);
             callback(new Error('Not allowed by CORS'));
         }
     },
-    credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    exposedHeaders: ['Content-Range', 'X-Content-Range']
-}));
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    credentials: true,
+    optionsSuccessStatus: 200
+};
 
-// Pre-flight OPTIONS request handling
-app.options('*', cors());
+// Apply CORS middleware
+app.use(cors(corsOptions));
+
+// Enable pre-flight requests for all routes
+app.options('*', cors(corsOptions));
 
 // Socket.IO configuration with essential options
 const io = new Server(server, {
@@ -128,6 +135,13 @@ app.get("/", (req, res) => {
 // Global error handler
 app.use((err, req, res, next) => {
     console.error('Global error handler:', err);
+    if (err.message === 'Not allowed by CORS') {
+        return res.status(403).json({
+            error: 'CORS Error',
+            message: 'Origin not allowed',
+            origin: req.headers.origin
+        });
+    }
     res.status(500).json({
         message: 'Something went wrong!',
         error: process.env.NODE_ENV === 'development' ? err.message : undefined
