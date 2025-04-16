@@ -16,7 +16,7 @@ const server = http.createServer(app);
 // Middleware with specific CORS options
 const allowedOrigins = [
     'http://localhost:3000',
-    'https://campus-guide-gamma.vercel.app'
+    'https://campus-guide-9j7f2jv68-bugyman66s-projects.vercel.app'
 ];
 
 app.use(cors({
@@ -24,17 +24,19 @@ app.use(cors({
         // Allow requests with no origin (like mobile apps or curl requests)
         if (!origin) return callback(null, true);
         
-        if (allowedOrigins.indexOf(origin) === -1) {
-            return callback(new Error('CORS not allowed'));
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
         }
-        return callback(null, true);
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    exposedHeaders: ['Content-Range', 'X-Content-Range']
 }));
 
-// Enable pre-flight requests
+// Pre-flight OPTIONS request handling
 app.options('*', cors());
 
 // Socket.IO configuration with essential options
