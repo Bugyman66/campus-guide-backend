@@ -13,6 +13,30 @@ const ChatService = require('./services/chatService');
 const app = express();
 const server = http.createServer(app);
 
+// Middleware with specific CORS options
+const allowedOrigins = [
+    'http://localhost:3000',
+    'https://campus-guide-gamma.vercel.app'
+];
+
+app.use(cors({
+    origin: function(origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.indexOf(origin) === -1) {
+            return callback(new Error('CORS not allowed'));
+        }
+        return callback(null, true);
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Enable pre-flight requests
+app.options('*', cors());
+
 // Socket.IO configuration with essential options
 const io = new Server(server, {
     cors: {
@@ -23,6 +47,8 @@ const io = new Server(server, {
 
 // ✅ Connect to MongoDB
 connectDB();
+
+app.use(express.json());
 
 // Track active users
 const activeUsers = new Map();
@@ -78,15 +104,6 @@ io.on('connection', async (socket) => {
         }
     });
 });
-
-// Middleware with specific CORS options
-app.use(cors({
-    origin: ['https://campus-guide-owtder6rr-bugyman66s-projects.vercel.app', 'http://localhost:3000'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
-app.use(express.json());
 
 // Debug middleware
 app.use((req, res, next) => {

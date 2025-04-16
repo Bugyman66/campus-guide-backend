@@ -87,6 +87,10 @@ router.post('/register', async (req, res) => {
 
 router.post('/login', async (req, res) => {
     try {
+        // Set CORS headers explicitly for this route
+        res.header('Access-Control-Allow-Origin', 'https://campus-guide-gamma.vercel.app');
+        res.header('Access-Control-Allow-Credentials', 'true');
+
         const { email, password } = req.body;
         const user = await User.findOne({ email });
 
@@ -109,8 +113,12 @@ router.post('/login', async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Login error:', error);
-        res.status(500).json({ message: 'Error logging in', error: error.message });
+        console.error('Login Error:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Login failed', 
+            error: error.message 
+        });
     }
 });
 
