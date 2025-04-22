@@ -7,6 +7,12 @@ require('dotenv').config();
 
 const router = express.Router();
 
+const allowedOrigins = [
+    'http://localhost:3000',
+    'https://campus-guide-gamma.vercel.app',
+    'https://campus-guide-ir29ynidv-bugyman66s-projects.vercel.app'
+];
+
 // Ensure JWT Secret Key is loaded
 if (!process.env.JWT_SECRET) {
     console.error("⚠️ JWT_SECRET is not defined in .env file");
@@ -16,6 +22,14 @@ if (!process.env.JWT_SECRET) {
 // ✅ Register User
 router.post('/register', async (req, res) => {
     try {
+        const origin = req.get('origin');
+        if (allowedOrigins.includes(origin)) {
+            res.header('Access-Control-Allow-Origin', origin);
+            res.header('Access-Control-Allow-Credentials', 'true');
+        } else {
+            return res.status(403).json({ message: 'Origin not allowed' });
+        }
+
         const { name, email, regNo, faculty, department, password } = req.body;
 
         // Validate input
@@ -87,9 +101,13 @@ router.post('/register', async (req, res) => {
 
 router.post('/login', async (req, res) => {
     try {
-        // Set CORS headers explicitly for this route
-        res.header('Access-Control-Allow-Origin', 'https://campus-guide-gamma.vercel.app');
-        res.header('Access-Control-Allow-Credentials', 'true');
+        const origin = req.get('origin');
+        if (allowedOrigins.includes(origin)) {
+            res.header('Access-Control-Allow-Origin', origin);
+            res.header('Access-Control-Allow-Credentials', 'true');
+        } else {
+            return res.status(403).json({ message: 'Origin not allowed' });
+        }
 
         const { email, password } = req.body;
         const user = await User.findOne({ email });

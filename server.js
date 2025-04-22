@@ -16,41 +16,40 @@ const server = http.createServer(app);
 // Define allowed origins
 const allowedOrigins = [
     'http://localhost:3000',
-    'https://campus-guide-9j7f2jv68-bugyman66s-projects.vercel.app'
+    'https://campus-guide-gamma.vercel.app',
+    'https://campus-guide-ir29ynidv-bugyman66s-projects.vercel.app'
 ];
 
 // CORS configuration
-const corsOptions = {
+app.use(cors({
     origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps, curl, postman)
-        if (!origin) {
-            return callback(null, true);
-        }
-
-        if (allowedOrigins.includes(origin)) {
+        if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
-            console.log('Blocked origin:', origin);
             callback(new Error('Not allowed by CORS'));
         }
     },
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-    credentials: true,
-    optionsSuccessStatus: 200
-};
-
-// Apply CORS middleware
-app.use(cors(corsOptions));
+    credentials: true
+}));
 
 // Enable pre-flight requests for all routes
-app.options('*', cors(corsOptions));
+app.options('*', cors({
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true
+}));
 
 // Socket.IO configuration with essential options
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:3000",
-        methods: ["GET", "POST"]
+        origin: allowedOrigins,
+        methods: ["GET", "POST"],
+        credentials: true
     }
 });
 
@@ -135,16 +134,10 @@ app.get("/", (req, res) => {
 // Global error handler
 app.use((err, req, res, next) => {
     console.error('Global error handler:', err);
-    if (err.message === 'Not allowed by CORS') {
-        return res.status(403).json({
-            error: 'CORS Error',
-            message: 'Origin not allowed',
-            origin: req.headers.origin
-        });
-    }
     res.status(500).json({
-        message: 'Something went wrong!',
-        error: process.env.NODE_ENV === 'development' ? err.message : undefined
+        error: 'Server Error',
+        message: err.message,
+        origin: req.headers.origin
     });
 });
 

@@ -5,6 +5,7 @@ const Accommodation = require("../models/Accommodation");
 const authMiddleware = require("../middleware/auth");
 const axios = require("axios");
 require("dotenv").config();
+const config = require("../config/env");
 
 // Book an accommodation (Step 1: Save booking)
 router.post("/book", authMiddleware, async (req, res) => {
@@ -51,6 +52,11 @@ router.post("/pay", authMiddleware, async (req, res) => {
             return res.status(400).json({ msg: "User email is required" });
         }
 
+        // Get callback URL based on environment
+        const callback_url = process.env.NODE_ENV === 'production'
+            ? 'https://campus-guide-gamma.vercel.app/payment-success'
+            : 'http://localhost:3000/payment-success';
+
         const amount = 50000 * 100; // 50,000 NGN in Kobo
 
         const response = await axios.post(
@@ -58,7 +64,7 @@ router.post("/pay", authMiddleware, async (req, res) => {
             {
                 email: userEmail,
                 amount: amount,
-                callback_url: "http://localhost:3000/payment-success",
+                callback_url,
             },
             {
                 headers: {
