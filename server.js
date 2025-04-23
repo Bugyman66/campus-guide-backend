@@ -8,6 +8,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const ChatService = require('./services/chatService');
 const corsMiddleware = require('./middleware/cors');
+const cors = require('cors');
 
 // Import allowedOrigins from CORS middleware
 const allowedOrigins = [
@@ -24,6 +25,11 @@ const app = express();
 const server = http.createServer(app);
 
 // Apply CORS middleware
+app.use(cors({
+    origin: 'http://localhost:3000', // or your frontend URL
+    credentials: true
+}));
+
 app.use(corsMiddleware);
 
 // Enable pre-flight requests for all routes
@@ -148,6 +154,12 @@ app.use((err, req, res, next) => {
         message: err.message,
         origin: req.headers.origin
     });
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ message: 'Something went wrong!' });
 });
 
 // Start server
