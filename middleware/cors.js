@@ -6,6 +6,7 @@ const allowedOrigins = [
     'https://campus-guide-ir29ynidv-bugyman66s-projects.vercel.app',
     'https://campus-guide.vercel.app',
     'https://campus-guide-frontend.onrender.com',
+    'https://campus-guide-9j7f2jv68-bugyman66s-projects.vercel.app',
     'https://campus-guide.onrender.com'
 ];
 
