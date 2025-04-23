@@ -8,28 +8,12 @@ const http = require('http');
 const { Server } = require('socket.io');
 const ChatService = require('./services/chatService');
 const corsMiddleware = require('./middleware/cors');
-const cors = require('cors');
-
-// Import allowedOrigins from CORS middleware
-const allowedOrigins = [
-    'http://localhost:3000',
-    'https://campus-guide-gamma.vercel.app',
-    'https://campus-guide-ir29ynidv-bugyman66s-projects.vercel.app',
-    'https://campus-guide.vercel.app',
-    'https://campus-guide-frontend.onrender.com',
-    'https://campus-guide.onrender.com'
-];
 
 // Create server and socket instance
 const app = express();
 const server = http.createServer(app);
 
 // Apply CORS middleware
-app.use(cors({
-    origin: 'http://localhost:3000', // or your frontend URL
-    credentials: true
-}));
-
 app.use(corsMiddleware);
 
 // Enable pre-flight requests for all routes
@@ -38,13 +22,11 @@ app.options('*', corsMiddleware);
 // Socket.IO configuration with CORS
 const io = new Server(server, {
     cors: {
-        origin: (origin, callback) => {
-            if (!origin) {
-                return callback(null, true);
-            }
-            if (allowedOrigins.includes(origin) || 
+        origin: function (origin, callback) {
+            if (!origin) return callback(null, true);
+            if (origin.match(/\.vercel\.app$/) || 
                 origin.match(/\.render\.com$/) || 
-                origin.match(/\.vercel\.app$/)) {
+                origin === 'http://localhost:3000') {
                 callback(null, true);
             } else {
                 console.log('Blocked socket origin:', origin);
