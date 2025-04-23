@@ -2,34 +2,19 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const { emitWarning } = require('process');
 require('dotenv').config();
 
 const router = express.Router();
 
-const allowedOrigins = [
-    'http://localhost:3000',
-    'https://campus-guide-gamma.vercel.app',
-    'https://campus-guide-ir29ynidv-bugyman66s-projects.vercel.app'
-];
-
 // Ensure JWT Secret Key is loaded
 if (!process.env.JWT_SECRET) {
     console.error("⚠️ JWT_SECRET is not defined in .env file");
-    process.exit(1); // Stop server if missing
+    process.exit(1);
 }
 
 // ✅ Register User
 router.post('/register', async (req, res) => {
     try {
-        const origin = req.get('origin');
-        if (allowedOrigins.includes(origin)) {
-            res.header('Access-Control-Allow-Origin', origin);
-            res.header('Access-Control-Allow-Credentials', 'true');
-        } else {
-            return res.status(403).json({ message: 'Origin not allowed' });
-        }
-
         const { name, email, regNo, faculty, department, password } = req.body;
 
         // Validate input
@@ -85,7 +70,6 @@ router.post('/register', async (req, res) => {
     } catch (error) {
         console.error('Registration error:', error);
         
-        // Handle specific MongoDB errors
         if (error.code === 11000) {
             return res.status(400).json({ 
                 message: 'Email or registration number already exists' 
@@ -101,14 +85,6 @@ router.post('/register', async (req, res) => {
 
 router.post('/login', async (req, res) => {
     try {
-        const origin = req.get('origin');
-        if (allowedOrigins.includes(origin)) {
-            res.header('Access-Control-Allow-Origin', origin);
-            res.header('Access-Control-Allow-Credentials', 'true');
-        } else {
-            return res.status(403).json({ message: 'Origin not allowed' });
-        }
-
         const { email, password } = req.body;
         const user = await User.findOne({ email });
 
